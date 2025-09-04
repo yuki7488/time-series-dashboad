@@ -1,7 +1,7 @@
 Time Series Forecast Dashboard
 ==============================
 
-美しくシンプルな時系列ダッシュボード。CSV をアップロードすると自動で予測を実行し（Holt-Winters/Holt）、推定値・予測値・EDA（移動平均、曜日別平均、月別プロファイル、簡易周期推定）を即座に可視化します。Vercel にそのままデプロイ可能です。
+美しくシンプルな時系列ダッシュボード。CSV をアップロードすると自動で予測を実行し（Holt-Winters/Holt）、推定値・予測値・EDA（移動平均、曜日別平均、月別プロファイル、簡易周期推定）を即座に可視化します。
 
 主な機能
 - **CSVアップロード**: ヘッダー有無や列数の違いに柔軟対応。`date/value`や`ds/y`など一般的な別名を自動判別。
@@ -53,8 +53,7 @@ API（予測）
 - `src/lib/forecast.ts`: 予測ロジック（TS実装）
 - `src/lib/eda.ts`: EDAユーティリティ
 
-Vercel デプロイ
-- GitHub連携済みなら、リポジトリをImportしてそのままデプロイ可能
+Vercel
 - Build Command: `npm run build`
 - Output Directory: `.next`
 - 設定ファイル: `vercel.json`
