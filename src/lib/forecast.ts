@@ -223,8 +223,16 @@ export function autoForecast(
       ...hl,
     };
   }
-  const { sse: _internalSse, ...rest } = best as AutoForecastResult & { sse?: number };
-  return rest as AutoForecastResult;
+  // Return without internal metric
+  const chosen = best as AutoForecastResult & { sse?: number };
+  return {
+    method: chosen.method,
+    horizon: chosen.horizon,
+    params: chosen.params,
+    fitted: chosen.fitted,
+    forecast: chosen.forecast,
+    residuals: chosen.residuals,
+  };
 }
 
 

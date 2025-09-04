@@ -71,9 +71,7 @@ export default function AdvancedEDA() {
     reader.onload = () => {
       try {
         const content = String(reader.result ?? "");
-        const needsHeader = !/date|ds|timestamp|time/i.test(content.split(/\r?\n/)[0] ?? "");
-        const withHeader = needsHeader ? `date,value\n${content}` : content;
-        const parsed = parseCsv(withHeader);
+        const parsed = parseCsv(content);
         if (parsed.length === 0) {
           setError("CSVに有効な行がありません。(必要列: date,value)");
           return;
@@ -81,7 +79,7 @@ export default function AdvancedEDA() {
         setRows(parsed);
         setError(null);
         // raw rows for EDA
-        const csvLines = withHeader.split(/\r?\n/).filter(Boolean);
+        const csvLines = content.split(/\r?\n/).filter(Boolean);
         const hdr = csvLines[0].split(",");
         const body = csvLines.slice(1).map((l) => l.split(","));
         const raw: RawRow[] = body.map((arr) => {
@@ -115,7 +113,7 @@ export default function AdvancedEDA() {
   }, [tsDaily]);
 
   return (
-    <div className="w-full max-w-5xl mx-auto">
+    <div className="w-full max-w-6xl mx-auto">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <div className="flex-1">
           <label className="block text-sm mb-1">CSVアップロード</label>
@@ -171,7 +169,7 @@ export default function AdvancedEDA() {
       )}
 
       {/* 元系列 + 移動平均 */}
-      <div className="mt-8 bg-white/5 rounded p-4">
+      <div className="mt-8 bg-white/5 rounded-xl p-4 border border-white/10">
         <h3 className="text-lg font-semibold mb-2">元系列と移動平均</h3>
         <Line
           data={{
@@ -186,7 +184,7 @@ export default function AdvancedEDA() {
       </div>
 
       {/* 曜日平均 */}
-      <div className="mt-8 bg-white/5 rounded p-4">
+      <div className="mt-8 bg-white/5 rounded-xl p-4 border border-white/10">
         <h3 className="text-lg font-semibold mb-2">曜日別平均（合算）</h3>
         <Line
           data={{
@@ -201,7 +199,7 @@ export default function AdvancedEDA() {
 
       {/* 月別プロファイル */}
       {monthProfile && (
-        <div className="mt-8 bg-white/5 rounded p-4">
+        <div className="mt-8 bg-white/5 rounded-xl p-4 border border-white/10">
           <h3 className="text-lg font-semibold mb-2">月別プロファイル</h3>
           <Line
             data={{

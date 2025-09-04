@@ -23,11 +23,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="ja">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#0f172a] via-[#0b1220] to-[#0a0f1a] text-white">
+          <header className="border-b border-white/10 backdrop-blur sticky top-0 z-20 bg-black/20">
+            <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_20px_6px_rgba(16,185,129,0.6)]"></span>
+                <h1 className="text-sm sm:text-base font-semibold tracking-tight">Time Series Forecast Dashboard</h1>
+              </div>
+              <nav className="hidden sm:flex items-center gap-3 text-xs opacity-80">
+                <a href="#tab-forecast" className="hover:opacity-100">予測</a>
+                <span className="opacity-40">/</span>
+                <a href="#tab-eda" className="hover:opacity-100">EDA</a>
+                <span className="opacity-40">/</span>
+                <a href="https://github.com/yuki7488/time-series-dashboad" target="_blank" rel="noreferrer" className="hover:opacity-100">GitHub</a>
+              </nav>
+            </div>
+          </header>
+          <main className="pb-20">{children}</main>
+          <footer className="border-t border-white/10 text-xs opacity-70">
+            <div className="max-w-6xl mx-auto px-4 py-6">© {new Date().getFullYear()} Time Series Forecast Dashboard</div>
+          </footer>
+        </div>
       </body>
     </html>
   );
