@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Time Series Forecast Dashboard
+================================
 
-## Getting Started
+概要
+----
+CSV をアップロードすると自動で時系列予測（Holt-Winters/Holt）を行い、チャートで可視化するシンプルなダッシュボードです。Vercel にそのままデプロイ可能です。
 
-First, run the development server:
+使い方
+----
+1. ローカルで起動
+   - キー操作: ⌘ + Space → 「Terminal」→ Enter
+   - コマンド: `cd /Users/atoyuuki/python3/time-series-dashboad && npm run dev`
+   - ブラウザで `http://localhost:3000` を開く
+2. 画面上部から CSV をアップロード（`date,value` 列）。サンプルは `/public/sample.csv` 参照。
+3. 予測ホライズン（日数）を指定し「予測実行」を押下すると、推定値/予測値がチャート表示されます。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+CSV 仕様
+----
+- 必須列: `date`, `value`
+- 列名は `ds/y` や `timestamp/target` などの一般的な別名も自動認識します
+- 日付は ISO または一般的な日付フォーマットを許容
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+技術構成
+----
+- Next.js(App Router, TypeScript)
+- Tailwind CSS v4
+- Chart.js + react-chartjs-2
+- 予測: Holt-Winters additive / Holt linear を TypeScript 実装（`src/lib/forecast.ts`）
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+API
+----
+- `POST /api/forecast`
+  - Request: `{ datesISO: string[], values: number[], horizon: number }`
+  - Response: `{ method, horizon, params, fitted: number[], forecast: number[], residuals: number[] }`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Vercel デプロイ
+----
+1. このフォルダをプロジェクトルートとして Vercel に import
+2. Build Command: `npm run build`
+3. Output: `.next`
+4. そのままデプロイ可
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+ライセンス
+----
+MIT
