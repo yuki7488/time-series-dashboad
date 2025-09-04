@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { parseCsv, toSeries, type CsvRow } from "@/lib/csv";
-import { guessColumns, summarizeMissing, aggregateTimeseries, movingAverage, autoDetectPeriod, weekdayAverages, monthlyProfile, type ColumnRoles, type EdaRow } from "@/lib/eda";
+import { guessColumns, summarizeMissing, aggregateTimeseries, movingAverage, autoDetectPeriod, weekdayAverages, monthlyProfile, type ColumnRoles, type EdaRow, type Frequency } from "@/lib/eda";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -48,10 +48,11 @@ export default function AdvancedEDA() {
 
   const missing = useMemo(() => summarizeMissing(edaRows, headers), [edaRows, headers]);
 
+  const [freq, setFreq] = useState<Frequency>("D");
   const tsDaily = useMemo(() => {
     if (!roles) return null;
-    return aggregateTimeseries(edaRows, roles, "D");
-  }, [edaRows, roles]);
+    return aggregateTimeseries(edaRows, roles, freq);
+  }, [edaRows, roles, freq]);
 
   const period = useMemo(() => {
     if (!tsDaily) return null;
@@ -170,6 +171,14 @@ export default function AdvancedEDA() {
 
       {/* 元系列 + 移動平均 */}
       <div className="mt-8 bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-sm opacity-80">集計</span>
+          <select className="border border-white/10 bg-transparent px-3 py-1 rounded" value={freq} onChange={(e) => setFreq(e.target.value as Frequency)}>
+            <option value="D">日</option>
+            <option value="M">月</option>
+            <option value="Y">年</option>
+          </select>
+        </div>
         <h3 className="text-lg font-semibold mb-2">元系列と移動平均</h3>
         <Line
           data={{

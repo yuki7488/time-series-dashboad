@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { parseCsv, toSeries, type CsvRow } from "@/lib/csv";
 import { Line } from "react-chartjs-2";
+import { aggregateSeries, type Frequency } from "@/lib/eda";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -36,26 +37,39 @@ export default function UploadAndChart() {
 
   const { datesISO, values } = useMemo(() => toSeries(rows), [rows]);
 
+  const [freq, setFreq] = useState<Frequency>("D");
+
+  const baseLabels = useMemo(() => {
+    const agg = aggregateSeries(datesISO, values, freq);
+    return agg.labels;
+  }, [datesISO, values, freq]);
+
   const labels = useMemo(() => {
-    const base = datesISO.map((d) => new Date(d).toISOString().slice(0, 10));
+    const base = baseLabels;
     if (forecast && forecast.length > 0) {
       const last = datesISO[datesISO.length - 1];
       if (last) {
-        const lastDate = new Date(last);
-        const future: string[] = [];
-        for (let i = 1; i <= forecast.length; i += 1) {
-          const dt = new Date(lastDate);
-          dt.setDate(dt.getDate() + i);
-          future.push(dt.toISOString().slice(0, 10));
+        if (freq === "D") {
+          const lastDate = new Date(last);
+          const future: string[] = [];
+          for (let i = 1; i <= forecast.length; i += 1) {
+            const dt = new Date(lastDate);
+            dt.setDate(dt.getDate() + i);
+            future.push(dt.toISOString().slice(0, 10));
+          }
+          return [...base, ...future];
         }
-        return [...base, ...future];
+        // For M/Y, just append placeholders
+        return [...base, ...Array.from({ length: forecast.length }, (_, i) => `+${i + 1}`)];
       }
     }
     return base;
-  }, [datesISO, forecast]);
+  }, [baseLabels, datesISO, forecast, freq]);
 
   const data = useMemo(() => {
-    const actualData = values;
+    // Aggregate actuals to selected freq
+    const agg = aggregateSeries(datesISO, values, freq);
+    const actualData = agg.values;
     const fittedData = fitted ?? [];
     const forecastData = forecast ?? [];
     const paddedFitted = new Array(Math.max(0, actualData.length - fittedData.length)).fill(null);
@@ -68,7 +82,7 @@ export default function UploadAndChart() {
         { label: "Forecast", data: paddedForecast, borderColor: "#fbbf24", backgroundColor: "#fbbf24", borderDash: [2, 4], tension: 0.25 },
       ],
     };
-  }, [labels, values, fitted, forecast]);
+  }, [labels, datesISO, values, fitted, forecast, freq]);
 
   function onClickUpload() {
     inputRef.current?.click();
@@ -213,6 +227,14 @@ export default function UploadAndChart() {
                   value={horizon}
                   onChange={(e) => setHorizon(parseInt(e.target.value || "30", 10))}
                 />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm opacity-80">集計</span>
+                <select className="border border-white/10 bg-transparent px-3 py-2 rounded" value={freq} onChange={(e) => setFreq(e.target.value as Frequency)}>
+                  <option value="D">日</option>
+                  <option value="M">月</option>
+                  <option value="Y">年</option>
+                </select>
               </div>
               <button type="button" className="px-4 py-2 rounded border border-white/20 hover:bg-white/5" onClick={onClickForecast}>
                 予測実行

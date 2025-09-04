@@ -1,6 +1,6 @@
 import { parseISO, formatISO } from "date-fns";
 
-export type Frequency = "D" | "M";
+export type Frequency = "D" | "M" | "Y";
 
 export interface ColumnRoles {
   date: string;
@@ -67,10 +67,13 @@ export function aggregateTimeseries(
     let bucket: string;
     if (freq === "D") {
       bucket = toISODateOnly(dt);
-    } else {
+    } else if (freq === "M") {
       const y = dt.getUTCFullYear();
       const m = dt.getUTCMonth() + 1;
       bucket = `${y}-${String(m).padStart(2, "0")}`;
+    } else {
+      const y = dt.getUTCFullYear();
+      bucket = `${y}`;
     }
     const key = roles.product ? product : "(TOTAL)";
     byKey[key] = byKey[key] ?? {};
@@ -122,6 +125,7 @@ export function autoDetectPeriod(labels: string[], values: number[], freq: Frequ
   const candidatesByFreq: Record<Frequency, number[]> = {
     D: [7, 14, 30, 60, 90, 180, 365],
     M: [6, 12, 24, 36],
+    Y: [2, 3, 4, 5, 6, 7, 10],
   };
   const cands = candidatesByFreq[freq].filter((p) => p >= 2 && p <= Math.max(2, Math.floor(n / 2)));
   const table = cands.map((p) => ({ period: p, score: Math.max(0, autocorrelation(values, p)) }))
@@ -168,6 +172,32 @@ export function monthlyProfile(labels: string[], values: number[]): { month: num
     rows.push({ month: m, qty: Number.isFinite(qty) ? (qty as number) : 0, diff_pct: Math.round(diffPct * 10) / 10 });
   }
   return rows;
+}
+
+// Aggregate a plain series by D/M/Y for forecasting or charts
+export function aggregateSeries(
+  datesISO: string[],
+  values: number[],
+  freq: Frequency
+): { labels: string[]; values: number[] } {
+  const map: Record<string, number> = {};
+  for (let i = 0; i < datesISO.length; i += 1) {
+    const d = parseISO(datesISO[i]);
+    let key: string;
+    if (freq === "D") {
+      key = formatISO(d, { representation: "date" });
+    } else if (freq === "M") {
+      const y = d.getUTCFullYear();
+      const m = d.getUTCMonth() + 1;
+      key = `${y}-${String(m).padStart(2, "0")}`;
+    } else {
+      key = String(d.getUTCFullYear());
+    }
+    map[key] = (map[key] ?? 0) + (values[i] ?? 0);
+  }
+  const labels = Object.keys(map).sort();
+  const out = labels.map((k) => map[k] ?? 0);
+  return { labels, values: out };
 }
 
 
