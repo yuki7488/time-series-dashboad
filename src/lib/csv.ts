@@ -62,21 +62,27 @@ export function parseCsv(content: string): CsvRow[] {
   });
   const rows: CsvRow[] = [];
   if (Array.isArray(parsed.data) && parsed.data.length > 0) {
+    const findKey = (obj: RawRow, regexes: RegExp[]): string | undefined => {
+      const keys = Object.keys(obj as object);
+      for (const k of keys) {
+        for (const r of regexes) if (r.test(k)) return k;
+      }
+      return undefined;
+    };
+    const dateRegs = [
+      /^(date|ds|timestamp|time)$/i,
+      /(受注日|注文日|発注日|日付|日時)/i,
+    ];
+    const valueRegs = [
+      /^(value|y|target|qty|quantity)$/i,
+      /(数量\(kg\)|数量|量|数|kg)/i,
+    ];
     for (const row of parsed.data) {
+      const dk = findKey(row as RawRow, dateRegs);
+      const vk = findKey(row as RawRow, valueRegs);
       const result = CsvRowSchema.safeParse({
-        date:
-          (row as RawRow)["date"] ??
-          (row as RawRow)["ds"] ??
-          (row as RawRow)["timestamp"] ??
-          (row as RawRow)["time"] ??
-          (row as RawRow)["Date"] ??
-          (row as RawRow)["DS"],
-        value:
-          (row as RawRow)["value"] ??
-          (row as RawRow)["y"] ??
-          (row as RawRow)["target"] ??
-          (row as RawRow)["Value"] ??
-          (row as RawRow)["Y"],
+        date: dk ? (row as RawRow)[dk] : undefined,
+        value: vk ? (row as RawRow)[vk] : undefined,
       });
       if (result.success) rows.push(result.data);
     }

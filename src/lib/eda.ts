@@ -16,12 +16,12 @@ export interface EdaRow {
 export function guessColumns(headers: string[]): ColumnRoles {
   const lower = headers.map((h) => h.toLowerCase());
   const find = (...cands: string[]) => headers[lower.findIndex((h) => cands.some((c) => h.includes(c)))] ?? headers[0];
-  const date = find("date", "time", "日", "timestamp", "ds");
-  const product = headers[lower.findIndex((h) => ["product", "item", "品", "sku"].some((c) => h.includes(c)))] ?? undefined;
+  const date = find("date", "time", "日", "timestamp", "ds", "受注日", "注文日", "発注日");
+  const product = headers[lower.findIndex((h) => ["product", "item", "品", "sku", "商品名"].some((c) => h.includes(c)))] ?? undefined;
   const numericCandidates = headers.filter((h) => ![date, product].includes(h));
   // default to a column named value/y/qty/quantity if exists
   const value =
-    headers[lower.findIndex((h) => ["value", "y", "qty", "quantity", "target", "量", "数"].some((c) => h.includes(c)))] ??
+    headers[lower.findIndex((h) => ["value", "y", "qty", "quantity", "target", "量", "数", "数量(kg)", "数量", "kg"].some((c) => h.includes(c)))] ??
     (numericCandidates[0] ?? headers[0]);
   return { date, value, product };
 }
